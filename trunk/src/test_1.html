@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<title>ISOGAME - test 1</title>
+		<script language="javascript" src="js/isogame.js"></script>
+		<script>
+			window.onload=function(){
+				// Create a Sprite
+				s = new ISO_Sprite("test", "w");
+				s.src['w'] = "img/pj.png";
+				s.setOffset( "w" , new Array(20,-30) ); 
+
+				// Draw a 10x10 lattice
+				var scene = new ISO_Scene();
+				for(var x=0; x< 10; x++)
+					for(var y=0; y< 10; y++) 
+						scene.addTile( new ISO_Tile( x+","+y, "", x,y) );
+				scene.draw("screen");
+
+				ISO_mainloop( function(){s.update();} );
+			}
+		</script>
+	</head>
+	<body>
+	<fieldset>
+	<legend>Sprite controls</legend>
+	<table>
+		<tr>
+			<td><input type="button" value="y--" onclick="s.setXYZWH(s.x, s.y-1);"/></td>
+			<td><input type="button" value="x--" onclick="s.setXYZWH(s.x-1);"/></td>
+			<td><input type="button" value="z++" onclick="s.setXYZWH(s.x, s.y, s.z+1);"/></td>
+		</tr>
+		<tr>
+			<td><input type="button" value="x++" onclick="s.setXYZWH(s.x+1);"/></td>
+			<td><input type="button" value="y++" onclick="s.setXYZWH(s.x, s.y+1);"/></td>
+			<td><input type="button" value="z--" onclick="s.setXYZWH(s.x, s.y, s.z-1);"/></td>
+		</tr>
+		<tr>
+			<td><input type="button" value="draw" onclick="s.draw('screen')"/></td>
+			<td><input type="button" value="erase" onclick="s.erase()"/></td>
+			<td></td>
+		</tr>
+	</table>
+	</legend>
+	<div id="screen"></div>
+	</body>
+</html>
