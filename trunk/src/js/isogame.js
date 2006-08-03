@@ -27,8 +27,9 @@ var ISO_Sprite=function( id, orientation ){ //<<<
 	this.x = 0;
 	this.y = 0;
 	this.z = 0;
-	this.width = 0;
-	this.height = 0;
+	this.dim_x=0;
+	this.dim_y=0;
+	this.dim_z=0;
 	this.src = new Array();
 	this.src['n'] = "";
 	this.src['s'] = "";
@@ -45,25 +46,20 @@ var ISO_Sprite=function( id, orientation ){ //<<<
 	this.colision=function( x, y ){ //<<<
 		x = parseInt(x);
 		y = parseInt(y);
-		this.x = parseInt( this.x );
-		this.y = parseInt( this.y );
-		this.h = parseInt( this.h );
-		this.w = parseInt( this.w );
-		if(( x >= this.x ) && ( x <= (this.x+(this.h-1)) ) &&
-		   ( y >= this.y ) && ( y <= (this.y+(this.w-1)) )) {
-		   return true;}
-		else return false;
+		if(( x >= this.x ) && ( x <= (this.x+(this.dim_x-1)) ) && ( y >= this.y ) && ( y <= (this.y+(this.dim_y-1)) ))
+			return true;
+		else 
+			return false;
 	} //>>>
-	this.setXYZWH=function( x,y,z,w,h ){ //<<<
+	this.setXYZ=function( x,y,z ){ //<<<
 		if(x!=undefined) this.x = parseInt(x);
 		if(y!=undefined) this.y = parseInt(y);
 		if(z!=undefined) this.z = parseInt(z);
-		if(w!=undefined) this.width = parseInt(w);
-		if(h!=undefined) this.height = parseInt(h);
 	}; //>>>
-	this.setWidthHeight=function( w, h ){ //<<<
-		this.width = parseInt(w);
-		this.height = parseInt(h);
+	this.setDimensions=function( x, y, z ){ //<<<
+		this.dim_x = parseInt(x);
+		this.dim_y = parseInt(y);
+		this.dim_z = parseInt(z);
 	} //>>>
 	this.getScreenPosition=function(){ //<<<
 		var x = this.x;
@@ -96,9 +92,7 @@ var ISO_Sprite=function( id, orientation ){ //<<<
 		var x = parseInt( this.x );
 		var y = parseInt( this.y );
 		var z = parseInt( this.z );
-		var w = parseInt( this.w );
-		var h = parseInt( this.h );
-		var inc_tamanio = (w>h)?w:h;
+		var inc_tamanio = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
 		var z_index = y+x+inc_tamanio;
 		if((parseInt(y)==-1) || (parseInt(x)==-1)) var z_index = 2;
 		this.img.style.zIndex = (z_index>0)?z_index:0;
@@ -124,7 +118,7 @@ var ISO_Tile=function( id, img, x, y ){ //<<<
 	ISO_Sprite.apply(this,new Array(id, "s" ));
 	this.src['s'] = "img/suelo.gif";
 	this.offset['s'] = new Array(0,0);
-	this.setXYZWH( x, y );
+	this.setXYZ( x, y );
 	this.draw = function( where ){ //<<<
 		this.img.id = this.id;
 		if(mie) {
