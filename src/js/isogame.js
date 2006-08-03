@@ -4,23 +4,27 @@
 	by Francisco Javier Nieto <frjanibo@gmail.com> 2006 
 
 	PLEASE SEND ME A MAIL ME IF YOU USE THIS!!! ;)
+
+	Note: //<<< and //>>> are my fold methods for vim ;)
 */
 
 const moz =(navigator.appName.indexOf("Netscape")>=0) 
 const mie =(navigator.appName.indexOf("Explorer")>=0) 
 
-const ISO_constants = {
-	"origen_x":500,
-	"origen_y":150,
-	"tile_w":72,
-	"tile_h":36
-	};
-
 // Useful methods for array
 Array.prototype.$=function( id ){for(var f=0; f<this.length; f++){if( this[f].id == id) return this[f];}return false;};
 Array.prototype._=function( id ){for(var f=0; f<this.length; f++)if( this[f].id == id) this.splice(f,1);};
 
-var ISO_Sprite=function( id, orientation ){ //<<<
+var isogame={
+"constants":{ //<<<
+	"origen_x":500,
+	"origen_y":150,
+	"tile_w":72,
+	"tile_h":36
+	}, //>>>
+
+//Classes
+"Sprite":function( id, orientation ){ //<<<
 	var self = this;
 	this.id = id;
 	this.o = orientation;
@@ -64,8 +68,8 @@ var ISO_Sprite=function( id, orientation ){ //<<<
 	this.getScreenPosition=function(){ //<<<
 		var x = this.x;
 		var y = this.y;
-		var x_screen = (y*(ISO_constants.tile_w/2) - x*(ISO_constants.tile_w/2)) + ISO_constants.origen_x;
-		var y_screen = (y*(ISO_constants.tile_h/2) + x*(ISO_constants.tile_h/2)) + ISO_constants.origen_y - parseInt(this.z);
+		var x_screen = (y*(isogame.constants.tile_w/2) - x*(isogame.constants.tile_w/2)) + isogame.constants.origen_x;
+		var y_screen = (y*(isogame.constants.tile_h/2) + x*(isogame.constants.tile_h/2)) + isogame.constants.origen_y - parseInt(this.z);
 		return new Array(x_screen, y_screen);
 	}; //>>>
 	this.setOffset=function( o, offset ){ //<<<
@@ -114,8 +118,8 @@ var ISO_Sprite=function( id, orientation ){ //<<<
 		this.img.style.top = position[1] + this.offset[this.o.charAt(0)][1];
 	}; //>>>
 } //>>>
-var ISO_Tile=function( id, img, x, y ){ //<<<
-	ISO_Sprite.apply(this,new Array(id, "s" ));
+,"Tile":function( id, img, x, y ){ //<<<
+	isogame.Sprite.apply(this,new Array(id, "s" ));
 	this.src['s'] = "img/suelo.gif";
 	this.offset['s'] = new Array(0,0);
 	this.setXYZ( x, y );
@@ -137,7 +141,7 @@ var ISO_Tile=function( id, img, x, y ){ //<<<
 		}
 	}; //>>>
 } //>>>
-var ISO_Group=function(){ //<<<
+,"Group":function(){ //<<<
 	this.elements = new Array();
 	this.$=function( id ){ //<<<
 		return this.elements.$( id );
@@ -156,8 +160,8 @@ var ISO_Group=function(){ //<<<
 		for(var f=0; f<this.elements.length; f++) this.elements[f].draw( where );
 	} //>>>
 	this.colision=function( groupOrSprite ){ //<<<
-		if( groupOrSprite instanceof ISO_Sprite ) return this.spriteColision( groupOrSprite );
-		if( groupOrSprite instanceof ISO_Group ) return this.groupColision( groupOrSprite );
+		if( groupOrSprite instanceof isogame.Sprite ) return this.spriteColision( groupOrSprite );
+		if( groupOrSprite instanceof isogame.Group ) return this.groupColision( groupOrSprite );
 	} //>>>
 	this.spriteColision=function( sprite ){ //<<<
 		var colisions = new Array();
@@ -176,15 +180,15 @@ var ISO_Group=function(){ //<<<
 		return colisions;
 	} //>>>
 } //>>>
-var ISO_Scene=function(){ //<<<
+,"Scene":function(){ //<<<
 	var self = this;
 	self.player = null;
-	self.avatars= new ISO_Group();
-	self.objects= new ISO_Group();
-	self.tiles =  new ISO_Group();
+	self.avatars= new isogame.Group();
+	self.objects= new isogame.Group();
+	self.tiles =  new isogame.Group();
 
-	self.paredes=new ISO_Group();
-	self.puertas=new ISO_Group();
+	self.paredes=new isogame.Group();
+	self.puertas=new isogame.Group();
 
 	this.draw=function( where ){ //<<<
 		self.tiles.draw( where );
@@ -220,23 +224,25 @@ var ISO_Scene=function(){ //<<<
 	} //>>>
 } //>>>
 
-function get3DfromScreen( x, y ){ //<<<
+// Functions
+,"mainloop":function ( func, delay ){ //<<<
+	if( typeof func != "function" ) {
+		throw "ISOGAME error: You must call isogame.mainloop with a function as first argument.";
+		return false;
+	}
+	if(delay == undefined) delay = 250;
+	return setInterval( func, delay );
+} //>>>
+,"get3DfromScreen":function( x, y ){ //<<<
 	x-=origen_x;
 	y-=origen_y;
 	var y_3d = Math.round( ((baldosa_w*y) - (baldosa_h*x)) / (baldosa_w*baldosa_h) );
 	var x_3d = Math.round( ((baldosa_w*y) + (baldosa_h*x)) / (baldosa_w*baldosa_h) )-1;
 	return new Array(x_3d,y_3d);
 } //>>>
-function getScreenfrom3D( x,y ){ //<<<
+,"getScreenfrom3D":function ( x,y ){ //<<<
 	var x_screen = (x*Math.round(baldosa_w/2) - y*Math.round(baldosa_w/2)) + origen_x;
 	var y_screen = (x*Math.round(baldosa_h/2) + y*Math.round(baldosa_h/2)) + origen_y;
 	return new Array(x_screen, y_screen);
 } //>>>
-function ISO_mainloop( func, delay ){ //<<<
-	if( typeof func != "function" ) {
-		throw "ISOGAME error: You must call ISO_mainloop with a function as first argument.";
-		return false;
-	}
-	if(delay == undefined) delay = 250;
-	return setInterval( func, delay );
-} //>>>
+};
