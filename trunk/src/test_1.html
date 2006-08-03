@@ -5,18 +5,18 @@
 		<script>
 			window.onload=function(){
 				// Create a Sprite
-				s = new ISO_Sprite("test", "w");
+				s = new isogame.Sprite("test", "w");
 				s.src['w'] = "img/pj.png";
 				s.setOffset( "w" , new Array(20,-30) ); 
 
 				// Draw a 10x10 lattice
-				var scene = new ISO_Scene();
+				var scene = new isogame.Scene();
 				for(var x=0; x< 10; x++)
 					for(var y=0; y< 10; y++) 
-						scene.addTile( new ISO_Tile( x+","+y, "", x,y) );
+						scene.addTile( new isogame.Tile( x+","+y, "", x,y) );
 				scene.draw("screen");
 
-				ISO_mainloop( function(){s.update();} );
+				isogame.mainloop( function(){s.update();} );
 			}
 		</script>
 	</head>
@@ -25,14 +25,14 @@
 	<legend>Sprite controls</legend>
 	<table>
 		<tr>
-			<td><input type="button" value="y--" onclick="s.setXYZWH(s.x, s.y-1);"/></td>
-			<td><input type="button" value="x--" onclick="s.setXYZWH(s.x-1);"/></td>
-			<td><input type="button" value="z++" onclick="s.setXYZWH(s.x, s.y, s.z+1);"/></td>
+			<td><input type="button" value="y--" onclick="s.setXYZ(s.x, s.y-1);"/></td>
+			<td><input type="button" value="x--" onclick="s.setXYZ(s.x-1);"/></td>
+			<td><input type="button" value="z++" onclick="s.setXYZ(s.x, s.y, s.z+1);"/></td>
 		</tr>
 		<tr>
-			<td><input type="button" value="x++" onclick="s.setXYZWH(s.x+1);"/></td>
-			<td><input type="button" value="y++" onclick="s.setXYZWH(s.x, s.y+1);"/></td>
-			<td><input type="button" value="z--" onclick="s.setXYZWH(s.x, s.y, s.z-1);"/></td>
+			<td><input type="button" value="x++" onclick="s.setXYZ(s.x+1);"/></td>
+			<td><input type="button" value="y++" onclick="s.setXYZ(s.x, s.y+1);"/></td>
+			<td><input type="button" value="z--" onclick="s.setXYZ(s.x, s.y, s.z-1);"/></td>
 		</tr>
 		<tr>
 			<td><input type="button" value="draw" onclick="s.draw('screen')"/></td>
