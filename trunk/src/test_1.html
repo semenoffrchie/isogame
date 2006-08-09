@@ -3,26 +3,69 @@
 		<title>ISOGAME - test 1</title>
 		<script language="javascript" src="js/isogame.js"></script>
 		<script>
+			id = 0;
+			function new_tile(){
+				isogame.EventManager.unregister( s );
+
+				s = new isogame.Sprite("test"+(id++), "w");
+				s.src['w'] = "img/tile_black.gif";
+				s.dim_z = 10;
+				s.notify = pj_notify;
+				isogame.EventManager.register( s );
+				scene.addObject( s );
+				s.draw("screen");
+			
+			}
 			window.onload=function(){
 				// Create a Sprite
 				s = new isogame.Sprite("test", "w");
-				s.src['w'] = "img/pj.png";
-				s.setOffset( "w" , new Array(20,-30) ); 
+				s.src['w'] = "img/tile_black.gif";
+				s.dim_z = 10;
+				s.notify = pj_notify;
+				isogame.EventManager.register( s );
 
 				// Draw a 10x10 lattice
-				var scene = new isogame.Scene();
+				scene = new isogame.Scene();
 				for(var x=0; x< 10; x++)
-					for(var y=0; y< 10; y++) 
-						scene.addTile( new isogame.Tile( x+","+y, "", x,y) );
-				scene.draw("screen");
+					for(var y=0; y< 10; y++) {
+						var tile = new isogame.Tile( x+","+y, "", x,y);
+						tile.z = Math.round( 20*Math.random() );
+						tile.z = 0;
+						//tile.z = Math.round( x+y*4 );
+						scene.addTile( tile );
+					}
 
-				isogame.mainloop( function(){s.update();} );
+				scene.addObject( s );
+				scene.draw("screen");
+				
+				isogame.mainloop( function(){s.update();}, 20 );
+			};
+			function pj_notify(ev){
+				if(ev.type == "keydown"){
+					var key = ev.originalEvent.keychar;
+					var new_x = s.x;
+					var new_y = s.y;
+
+					if(key=="UP") new_x = s.x-1;
+					if(key=="DOWN") new_x=s.x+1;
+					if(key=="LEFT") new_y=s.y-1;
+					if(key=="RIGHT") new_y=s.y+1;
+
+					try{
+						var ob=scene.whatsIn(new_x,new_y);
+						if( ob[0] instanceof isogame.Tile )
+							if( ob[0].z > (s.z+10) ) return false;
+					}catch (excep){return false;}
+					
+					s.setXYZ(new_x,new_y);
+				}
 			}
 		</script>
 	</head>
 	<body>
 	<fieldset>
 	<legend>Sprite controls</legend>
+	<p> Use cursors to move.</p>
 	<table>
 		<tr>
 			<td><input type="button" value="y--" onclick="s.setXYZ(s.x, s.y-1);"/></td>
@@ -37,7 +80,7 @@
 		<tr>
 			<td><input type="button" value="draw" onclick="s.draw('screen')"/></td>
 			<td><input type="button" value="erase" onclick="s.erase()"/></td>
-			<td></td>
+			<td><input type="button" value="new" onclick="new_tile()"/></td>
 		</tr>
 	</table>
 	</legend>
