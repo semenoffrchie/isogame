@@ -7,16 +7,15 @@
 
 	Note: //<<< and //>>> are my fold methods for vim ;)
 */
-
-const moz =(navigator.appName.indexOf("Netscape")>=0) 
-const mie =(navigator.appName.indexOf("Explorer")>=0) 
+var moz =(navigator.appName.indexOf("Netscape")>=0);
+var mie =(navigator.appName.indexOf("Explorer")>=0);
 
 // Useful methods for array
 Array.prototype.$=function( id ){for(var f=0; f<this.length; f++){if( this[f].id == id) return this[f];}return false;};
-Array.prototype._=function( id ){for(var f=0; f<this.length; f++)if( this[f].id == id) this.splice(f,1);};
+Array.prototype._=function( id ){for(var f=0; f<this.length; f++) if( this[f].id == id) this.splice(f,1)};
 
 var isogame={
-"constants":{ //<<<
+"config":{ //<<<
 	"origen_x":500,
 	"origen_y":150,
 	"tile_w":72,
@@ -31,9 +30,9 @@ var isogame={
 	this.x = 0;
 	this.y = 0;
 	this.z = 0;
-	this.dim_x=0;
-	this.dim_y=0;
-	this.dim_z=0;
+	this.dim_x=1;
+	this.dim_y=1;
+	this.dim_z=1;
 	this.src = new Array();
 	this.src['n'] = "";
 	this.src['s'] = "";
@@ -68,8 +67,8 @@ var isogame={
 	this.getScreenPosition=function(){ //<<<
 		var x = this.x;
 		var y = this.y;
-		var x_screen = (y*(isogame.constants.tile_w/2) - x*(isogame.constants.tile_w/2)) + isogame.constants.origen_x;
-		var y_screen = (y*(isogame.constants.tile_h/2) + x*(isogame.constants.tile_h/2)) + isogame.constants.origen_y - parseInt(this.z);
+		var x_screen = (y*(isogame.config.tile_w/2) - x*(isogame.config.tile_w/2)) + isogame.config.origen_x;
+		var y_screen = (y*(isogame.config.tile_h/2) + x*(isogame.config.tile_h/2)) + isogame.config.origen_y - parseInt(this.z);
 		return new Array(x_screen, y_screen);
 	}; //>>>
 	this.setOffset=function( o, offset ){ //<<<
@@ -92,14 +91,7 @@ var isogame={
 		this.img.style.left= position[0] + this.offset[this.o.charAt(0)][0];
 		this.img.style.top = position[1] + this.offset[this.o.charAt(0)][1];
 
-		//Calculo de profundidad (z)
-		var x = parseInt( this.x );
-		var y = parseInt( this.y );
-		var z = parseInt( this.z );
-		var inc_tamanio = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
-		var z_index = y+x+inc_tamanio;
-		if((parseInt(y)==-1) || (parseInt(x)==-1)) var z_index = 2;
-		this.img.style.zIndex = (z_index>0)?z_index:0;
+
 		
 		if(!this._drawn)	{
 			document.getElementById(where).appendChild(this.img);
@@ -113,9 +105,35 @@ var isogame={
 		}
 	}; //>>>
 	this.update = function(){ //<<<
+		try{
+			var obs=scene.whatsIn(this.x,this.y);
+			var max_z = 0;
+			for( var f=0; f< obs.length; f++){
+				if( obs[f] == this ) continue;
+				if( (obs[f].z+obs[f].dim_z) > max_z ) 
+					max_z = obs[f].z+obs[f].dim_z;
+				}
+
+			if( max_z > this.z ) this.z = max_z;
+
+			if( max_z < this.z ) this.z--;
+		}catch (excep){return;}
+		
 		var position = this.getScreenPosition();
 		this.img.style.left= position[0] + this.offset[this.o.charAt(0)][0];
-		this.img.style.top = position[1] + this.offset[this.o.charAt(0)][1];
+		this.img.style.top = position[1] + this.offset[this.o.charAt(0)][1] - this.dim_z;
+		//Calculo de profundidad (z)
+		var x = parseInt( this.x );
+		var y = parseInt( this.y );
+		var z = parseInt( this.z );
+		var inc_tamanio = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
+		var z_index = y+x+inc_tamanio;
+		if((parseInt(y)==-1) || (parseInt(x)==-1)) var z_index = 2;
+		this.img.style.zIndex = (z_index>0)?z_index:0;
+	}; //>>>
+	this.notify = function( ev ){ //<<<
+		this.x = ev.originalEvent.coords[0];
+		this.y = ev.originalEvent.coords[1];
 	}; //>>>
 } //>>>
 ,"Tile":function( id, img, x, y ){ //<<<
@@ -134,7 +152,18 @@ var isogame={
 		var position = this.getScreenPosition();
 		this.img.style.left= position[0] + this.offset[this.o][0];
 		this.img.style.top = position[1] + this.offset[this.o][1];
+		
 		this.img.style.zIndex = 0;
+
+		//Calculo de profundidad (z)
+		var x = parseInt( this.x );
+		var y = parseInt( this.y );
+		var z = parseInt( this.z );
+		var inc_tamanio = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
+		var z_index = y+x+inc_tamanio;
+
+		if((parseInt(y)==-1) || (parseInt(x)==-1)) var z_index = 2;
+		this.img.style.zIndex = (z_index>0)?z_index:0;
 		if( !this._drawn )	{
 			document.getElementById(where).appendChild(this.img);
 			this._drawn = true;
@@ -142,7 +171,10 @@ var isogame={
 	}; //>>>
 } //>>>
 ,"Group":function(){ //<<<
+	var self=this;
 	this.elements = new Array();
+	this.length = 0;
+	this.elements.watch( "length", function(prop, oldval, newval){ self.length=newval;return newval; } ); 
 	this.$=function( id ){ //<<<
 		return this.elements.$( id );
 	} //>>>
@@ -153,6 +185,9 @@ var isogame={
 	this.remove=function( sprite ){ //<<<
 		this.elements._( sprite.id );
 	} //>>>
+	this.item=function( key ){
+		return this.elements[key];
+	}
 	this.update=function(){ //<<<
 		for(var f=0; f<this.elements.length; f++) this.elements[f].update();
 	} //>>>
@@ -179,6 +214,8 @@ var isogame={
 		}
 		return colisions;
 	} //>>>
+	this.notify = function( ev ){ //<<<
+	}; //>>>
 } //>>>
 ,"Scene":function(){ //<<<
 	var self = this;
@@ -192,16 +229,16 @@ var isogame={
 
 	this.draw=function( where ){ //<<<
 		self.tiles.draw( where );
-		for(var f=0; f< self.objects.length; f++) self.objects[f].draw( where );
+		self.objects.draw( where );
 		for(var f=0; f< self.paredes.length; f++) self.paredes[f].draw( where );
 		for(var f=0; f< self.puertas.length; f++) self.puertas[f].draw( where );
 		for(var f=0; f< self.avatars.length; f++) self.avatars[f].draw( where );
 	} //>>>
 	this.addTile=function( tile ){ //<<<
-		this.tiles.add(tile);
+		self.tiles.add(tile);
 	} //>>>
 	this.addObject=function( sprite ){ //<<<
-		if( !this.objects.$( sprite.id )) this.objects.push( sprite );
+		self.objects.add( sprite );
 	} //>>>
 	this.addAvatar=function( avatar ){ //<<<
 		if( !this.avatars.$( avatar.id )) this.avatars.push( avatar );
@@ -211,17 +248,59 @@ var isogame={
 	} //>>>
 	this.whatsIn=function( x, y ){ //<<<
 		var ret = Array();
+		for(var f=0; f< self.tiles.length; f++){
+			var obj = self.tiles.item(f);
+			if( (obj.x==x) && (obj.y==y) ) ret.push( self.tiles.item(f) );
+		}
+		if( ret.length == 0 ){
+			throw new Exception("isogame.Scene.whatsIn: invalid coordinates ("+x+","+y+")");
+			return ret;
+		}
 
-		for(var f=0; f< self.avatars.length; f++){
-			var obj = self.avatars[f];
+		for(var f=0; f< self.objects.length; f++){
+			var obj = self.objects.item(f);
 			if( obj.colision(x,y) ) ret.push( obj );
 		}
-		for(var f=0; f< self.objects.length; f++){
-			var obj = self.objects[f];
-			if( obj.colision(x,y) ) retorno.push( obj );
+		
+		var seguir=true;
+		while(seguir){
+			seguir=false;
+			for(var f=0; f< obj.length; f++){
+				if(obj[f].z < obj[f+1].z) {
+					var o1 = obj[f];
+					obj[f] = obj[f+1];
+					obj[f] = o1;
+					//intercambio
+					seguir=true;
+				}
+				
+			}
 		}
-		return retorno;
+
+		return ret;
 	} //>>>
+	this.notify = function( ev ){ //<<<
+	}; //>>>
+} //>>>
+
+// Events
+,"EventManager": new function(){ //<<<
+	this.listeners = new Array();
+
+	this.register=function( ob ){ //<<<
+		if( ! this.listeners.$( ob.id ) ) this.listeners[this.listeners.length]=ob;
+	} //>>>
+	this.unregister=function( ob ){ //<<<
+		this.listeners._( ob.id );
+	} //>>>
+	this.post=function( ev ){ //<<<
+		for(var f=0; f< this.listeners.length; f++)
+			this.listeners[f].notify( ev );
+	} //>>>
+} //>>>
+,"Event":function( type, event ){ //<<<
+	this.type = type;
+	this.originalEvent = event;
 } //>>>
 
 // Functions
@@ -230,19 +309,54 @@ var isogame={
 		throw "ISOGAME error: You must call isogame.mainloop with a function as first argument.";
 		return false;
 	}
+	window.onmousemove=isogame.MouseController;
+	window.onkeydown=isogame.KeyboardController;
 	if(delay == undefined) delay = 250;
 	return setInterval( func, delay );
 } //>>>
+,"MouseController":function(event){ //<<<
+	if(moz)	
+		var coords = isogame.get3DfromScreen( event.pageX, event.pageY );
+	else 
+		var coords = isogame.get3DfromScreen( event.clientX, event.clientY );
+
+	event.coords = coords;
+	var e= new isogame.Event( "mousemove", event );
+	isogame.EventManager.post( e );
+} //>>>
+,"KeyboardController":function(event){ //<<<
+	var key = undefined;
+	if(mie) key = event.keyCode;
+	else key = event.which;
+	var keychar = String.fromCharCode( key );
+	if(key==37) keychar = "LEFT";
+	if(key==38) keychar = "UP";
+	if(key==39) keychar = "RIGHT";
+	if(key==40) keychar = "DOWN";
+	event.key = key;
+	event.keychar = keychar;
+	var e= new isogame.Event( "keydown", event );
+	isogame.EventManager.post( e );
+
+	if(( key > 36) && (key < 41) )return false;
+} //>>>
+
 ,"get3DfromScreen":function( x, y ){ //<<<
-	x-=origen_x;
-	y-=origen_y;
-	var y_3d = Math.round( ((baldosa_w*y) - (baldosa_h*x)) / (baldosa_w*baldosa_h) );
-	var x_3d = Math.round( ((baldosa_w*y) + (baldosa_h*x)) / (baldosa_w*baldosa_h) )-1;
+	x-= isogame.config.origen_x;
+	y-= isogame.config.origen_y;
+	var w = isogame.config.tile_w;
+	var h = isogame.config.tile_h;
+
+	var x_3d = Math.round( ((w*y) - (h*x)) / (w*h) );
+	var y_3d = Math.round( ((w*y) + (h*x)) / (w*h) )-1;
 	return new Array(x_3d,y_3d);
 } //>>>
 ,"getScreenfrom3D":function ( x,y ){ //<<<
-	var x_screen = (x*Math.round(baldosa_w/2) - y*Math.round(baldosa_w/2)) + origen_x;
-	var y_screen = (x*Math.round(baldosa_h/2) + y*Math.round(baldosa_h/2)) + origen_y;
+	var w = isogame.config.tile_w;
+	var h = isogame.config.tile_h;
+
+	var x_screen = (x*Math.round(w/2) - y*Math.round(w/2)) + isogame.config.origen_x;
+	var y_screen = (x*Math.round(h/2) + y*Math.round(h/2)) + isogame.config.origen_y;
 	return new Array(x_screen, y_screen);
 } //>>>
 };
