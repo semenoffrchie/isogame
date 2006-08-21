@@ -10,18 +10,21 @@
 				s = new isogame.Sprite("test"+(id++), "w");
 				s.src['w'] = "img/tile_black.gif";
 				s.dim_z = 10;
+				s.dim_x = 10;
+				s.dim_y = 10;
 				s.notify = pj_notify;
 				isogame.EventManager.register( s );
 				scene.addObject( s );
 				s.draw("screen");
-			
 			}
+
 			window.onload=function(){
 				// Create a Sprite
 				s = new isogame.Sprite("test", "w");
 				s.src['w'] = "img/tile_black.gif";
 				s.dim_z = 10;
 				s.notify = pj_notify;
+				s.setXYZ(0,0,1);
 				isogame.EventManager.register( s );
 
 				// Draw a 10x10 lattice
@@ -29,7 +32,7 @@
 				for(var x=0; x< 10; x++)
 					for(var y=0; y< 10; y++) {
 						var tile = new isogame.Tile( x+","+y, "", x,y);
-						tile.z = Math.round( 20*Math.random() );
+						tile.z = Math.round( 10*Math.random() );
 						tile.z = 0;
 						//tile.z = Math.round( x+y*4 );
 						scene.addTile( tile );
@@ -38,26 +41,53 @@
 				scene.addObject( s );
 				scene.draw("screen");
 				
-				isogame.mainloop( function(){s.update();}, 20 );
+				isogame.mainloop( principal, 100 );
 			};
+
+			function principal(){
+				s.update();
+			};
+
 			function pj_notify(ev){
 				if(ev.type == "keydown"){
 					var key = ev.originalEvent.keychar;
 					var new_x = s.x;
 					var new_y = s.y;
 
-					if(key=="UP") new_x = s.x-1;
-					if(key=="DOWN") new_x=s.x+1;
-					if(key=="LEFT") new_y=s.y-1;
-					if(key=="RIGHT") new_y=s.y+1;
+					if(key=="UP")    new_x = s.x-1;
+					if(key=="DOWN")  new_x = s.x+1;
+					if(key=="LEFT")  new_y = s.y-1;
+					if(key=="RIGHT") new_y = s.y+1;
 
 					try{
-						var ob=scene.whatsIn(new_x,new_y);
-						if( ob[0] instanceof isogame.Tile )
-							if( ob[0].z > (s.z+10) ) return false;
-					}catch (excep){return false;}
+						var new_z = s.z;
+						var obs=scene.whatsIn(new_x,new_y);
+						var debajo = obs[0];
+
+						if(obs.length != 1 )
+						for( var f=0; f< obs.length; f++){
+							if( obs[f].id == s.id ) continue;
+							if(f==obs.length-1){
+								var debajo = obs[f];
+								break;
+							}
+							if( (obs[f].z+obs[f].dim_z) == obs[f+1].z ){
+								//no hay hueco
+								continue;
+							} else {
+								var debajo = obs[f];
+								break;
+							}
+						}
+						else var debajo = obs[0];
+						var tope_inferior = debajo.z+debajo.dim_z;
+						if (tope_inferior > s.z) new_z = tope_inferior;
+						if (tope_inferior < s.z) new_z = s.z-1;			
+					}catch (excep){
+					echo(excep);
+					return false;}
 					
-					s.setXYZ(new_x,new_y);
+					s.setXYZ(new_x,new_y,new_z);
 				}
 			}
 		</script>
@@ -85,5 +115,6 @@
 	</table>
 	</legend>
 	<div id="screen"></div>
+	<textarea id="output" cols="50" rows="10"></textarea>
 	</body>
 </html>

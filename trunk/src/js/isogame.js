@@ -16,6 +16,8 @@ Array.prototype._=function( id ){for(var f=0; f<this.length; f++) if( this[f].id
 
 var isogame={
 "config":{ //<<<
+	"mie":(navigator.appName.indexOf("Explorer")>=0),
+	"moz":(navigator.appName.indexOf("Netscape")>=0),
 	"origen_x":500,
 	"origen_y":150,
 	"tile_w":72,
@@ -24,6 +26,7 @@ var isogame={
 
 //Classes
 "Sprite":function( id, orientation ){ //<<<
+	//<<< Constructor
 	var self = this;
 	this.id = id;
 	this.o = orientation;
@@ -45,12 +48,13 @@ var isogame={
 	this.offset['e'] = new Array(0,0);
 	this.img = document.createElement("img");
 	this._drawn = false;
-	
+	//>>>
 	this.colision=function( x, y ){ //<<<
 		x = parseInt(x);
 		y = parseInt(y);
-		if(( x >= this.x ) && ( x <= (this.x+(this.dim_x-1)) ) && ( y >= this.y ) && ( y <= (this.y+(this.dim_y-1)) ))
+		if(( x >= this.x ) && ( x <= (this.x+this.dim_x) ) && ( y >= this.y ) && ( y <= (this.y+this.dim_y) )) {
 			return true;
+		}
 		else 
 			return false;
 	} //>>>
@@ -105,32 +109,20 @@ var isogame={
 		}
 	}; //>>>
 	this.update = function(){ //<<<
-		try{
-			var obs=scene.whatsIn(this.x,this.y);
-			var max_z = 0;
-			for( var f=0; f< obs.length; f++){
-				if( obs[f] == this ) continue;
-				if( (obs[f].z+obs[f].dim_z) > max_z ) 
-					max_z = obs[f].z+obs[f].dim_z;
-				}
-
-			if( max_z > this.z ) this.z = max_z;
-
-			if( max_z < this.z ) this.z--;
-		}catch (excep){return;}
-		
 		var position = this.getScreenPosition();
 		this.img.style.left= position[0] + this.offset[this.o.charAt(0)][0];
 		this.img.style.top = position[1] + this.offset[this.o.charAt(0)][1] - this.dim_z;
-		//Calculo de profundidad (z)
+		this.img.style.zIndex = this.z_calc();
+	}; //>>>
+	this.z_calc = function(){ //<<<
 		var x = parseInt( this.x );
 		var y = parseInt( this.y );
 		var z = parseInt( this.z );
 		var inc_tamanio = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
-		var z_index = y+x+inc_tamanio;
+		var z_index = (y+x)*z+inc_tamanio;
 		if((parseInt(y)==-1) || (parseInt(x)==-1)) var z_index = 2;
-		this.img.style.zIndex = (z_index>0)?z_index:0;
-	}; //>>>
+		return (z_index>0)?z_index:0;
+	} //>>>
 	this.notify = function( ev ){ //<<<
 		this.x = ev.originalEvent.coords[0];
 		this.y = ev.originalEvent.coords[1];
@@ -153,17 +145,7 @@ var isogame={
 		this.img.style.left= position[0] + this.offset[this.o][0];
 		this.img.style.top = position[1] + this.offset[this.o][1];
 		
-		this.img.style.zIndex = 0;
-
-		//Calculo de profundidad (z)
-		var x = parseInt( this.x );
-		var y = parseInt( this.y );
-		var z = parseInt( this.z );
-		var inc_tamanio = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
-		var z_index = y+x+inc_tamanio;
-
-		if((parseInt(y)==-1) || (parseInt(x)==-1)) var z_index = 2;
-		this.img.style.zIndex = (z_index>0)?z_index:0;
+		this.img.style.zIndex = this.z_calc();
 		if( !this._drawn )	{
 			document.getElementById(where).appendChild(this.img);
 			this._drawn = true;
@@ -174,20 +156,21 @@ var isogame={
 	var self=this;
 	this.elements = new Array();
 	this.length = 0;
-	this.elements.watch( "length", function(prop, oldval, newval){ self.length=newval;return newval; } ); 
 	this.$=function( id ){ //<<<
 		return this.elements.$( id );
 	} //>>>
 	this.add=function( sprite ){ //<<<
 		if( !this.elements.$( sprite.id ) )
 			this.elements.push( sprite );
+		this.length = this.elements.length;
 	} //>>>
 	this.remove=function( sprite ){ //<<<
 		this.elements._( sprite.id );
+		this.length = this.elements.length;
 	} //>>>
-	this.item=function( key ){
+	this.item=function( key ){ //<<<
 		return this.elements[key];
-	}
+	} //>>>
 	this.update=function(){ //<<<
 		for(var f=0; f<this.elements.length; f++) this.elements[f].update();
 	} //>>>
@@ -250,10 +233,12 @@ var isogame={
 		var ret = Array();
 		for(var f=0; f< self.tiles.length; f++){
 			var obj = self.tiles.item(f);
-			if( (obj.x==x) && (obj.y==y) ) ret.push( self.tiles.item(f) );
+			//if( (obj.x==x) && (obj.y==y) ) ret.push( self.tiles.item(f) );
+			if( (obj.x <= x) && (obj.x+obj.dim_x > x) && (obj.y <= y) && (obj.y+obj.dim_y > y ) )
+				ret.push( obj )
 		}
 		if( ret.length == 0 ){
-			throw new Exception("isogame.Scene.whatsIn: invalid coordinates ("+x+","+y+")");
+			throw "isogame.Scene.whatsIn: invalid coordinates ("+x+","+y+")";
 			return ret;
 		}
 
@@ -266,10 +251,10 @@ var isogame={
 		while(seguir){
 			seguir=false;
 			for(var f=0; f< obj.length; f++){
-				if(obj[f].z < obj[f+1].z) {
+				if(obj[f].z > obj[f+1].z) {
 					var o1 = obj[f];
 					obj[f] = obj[f+1];
-					obj[f] = o1;
+					obj[f+1] = o1;
 					//intercambio
 					seguir=true;
 				}
@@ -286,6 +271,7 @@ var isogame={
 // Events
 ,"EventManager": new function(){ //<<<
 	this.listeners = new Array();
+	this.events = new Array();
 
 	this.register=function( ob ){ //<<<
 		if( ! this.listeners.$( ob.id ) ) this.listeners[this.listeners.length]=ob;
@@ -294,8 +280,22 @@ var isogame={
 		this.listeners._( ob.id );
 	} //>>>
 	this.post=function( ev ){ //<<<
-		for(var f=0; f< this.listeners.length; f++)
-			this.listeners[f].notify( ev );
+		if( ev.type == "mousemove" ) 
+			this.mouse_event = ev;
+		else
+			this.events.push( ev );
+	} //>>>
+	this.process=function(){ //<<<
+		while( this.events.length > 0 ){
+			var e = this.events.pop();
+			for(var i=0; i< this.listeners.length; i++)	this.listeners[i].notify( e );
+		}
+		if( this.mouse_event ) {
+			for(var i=0; i< this.listeners.length; i++)	
+				this.listeners[i].notify( this.mouse_event );
+			this.mouse_event = false;
+			}
+
 	} //>>>
 } //>>>
 ,"Event":function( type, event ){ //<<<
@@ -310,32 +310,39 @@ var isogame={
 		return false;
 	}
 	window.onmousemove=isogame.MouseController;
-	window.onkeydown=isogame.KeyboardController;
+	if(isogame.config.mie)
+		document.onkeydown=isogame.KeyboardController;
+	else
+		window.onkeydown=isogame.KeyboardController;
 	if(delay == undefined) delay = 250;
 	return setInterval( func, delay );
 } //>>>
 ,"MouseController":function(event){ //<<<
+	
 	if(moz)	
-		var coords = isogame.get3DfromScreen( event.pageX, event.pageY );
+		var coords = new Array( event.pageX, event.pageY );
 	else 
-		var coords = isogame.get3DfromScreen( event.clientX, event.clientY );
+		var coords = new Array( event.clientX, event.clientY );
 
 	event.coords = coords;
 	var e= new isogame.Event( "mousemove", event );
 	isogame.EventManager.post( e );
 } //>>>
-,"KeyboardController":function(event){ //<<<
+,"KeyboardController":function(ev){ //<<<
 	var key = undefined;
-	if(mie) key = event.keyCode;
-	else key = event.which;
+	if(isogame.config.mie) {
+		var ev = window.event;
+		key = window.event.keyCode;
+	} else key = ev.which;
+	
 	var keychar = String.fromCharCode( key );
 	if(key==37) keychar = "LEFT";
 	if(key==38) keychar = "UP";
 	if(key==39) keychar = "RIGHT";
 	if(key==40) keychar = "DOWN";
-	event.key = key;
-	event.keychar = keychar;
-	var e= new isogame.Event( "keydown", event );
+	ev.key = key;
+	ev.keychar = keychar;
+	var e= new isogame.Event( "keydown", ev );
 	isogame.EventManager.post( e );
 
 	if(( key > 36) && (key < 41) )return false;
@@ -360,3 +367,8 @@ var isogame={
 	return new Array(x_screen, y_screen);
 } //>>>
 };
+
+function echo( str ){ //<<<
+	document.getElementById("output").value += str +"\n";
+	document.getElementById("output").scrollTop = document.getElementById("output").scrollHeight;
+} //>>>
