@@ -1,0 +1,74 @@
+<html>
+	<head>
+		<title>ISOGAME - mouse motion test</title>
+		<script language="javascript" src="js/isogame.js"></script>
+		<script>
+			id = 0;
+			window.onload=function(){
+				// Create a Sprite
+				s = new isogame.Sprite("test", "w");
+				s.src['w'] = "img/tile_black.gif";
+				s.dim_z = 10;
+				s.notify = function (ev){
+					if(ev.type == "mousemove" ){
+						var coords = isogame.get3DfromScreen( ev.originalEvent.coords[0], ev.originalEvent.coords[1] );
+						try{ 
+							var obs = scene.whatsInCube( s.getCube() );
+						} catch(e){ return };
+						s.setXYZ( coords[0], coords[1], 0 );
+					}
+				};
+				s.setXYZ(0,0,1);
+				isogame.EventManager.register( s );
+
+				scene = new isogame.Scene();
+
+				// Draw a 10x10 lattice
+				var factor_x = 18;
+				var factor_y = 18;
+				for(var x=0; x< factor_x*10; x+=factor_x)
+					for(var y=0; y< factor_y*10; y+=factor_y) {
+						var tile = new isogame.Tile( x+","+y, "", x,y);
+						scene.addTile( tile );
+					}
+				scene.addObject( s );
+				scene.draw("screen");
+				
+				isogame.mainloop( principal, 50 );
+			};
+
+			function principal(){
+				isogame.EventManager.process();
+				s.update();
+			};
+
+			function mysprite_notify(ev){
+				if(ev.type == "mousemove" ){
+					var coords = isogame.get3DfromScreen( ev.originalEvent.coords[0], ev.originalEvent.coords[1] );
+					try{ 
+						var obs = scene.whatsIn( coords[0], coords[1] ) 
+						if( obs.length == 0 ) return;
+						s.setXYZ( coords[0], coords[1], 0 );
+					} catch(e){
+						s.setXYZ( coords[0], coords[1], 0 );
+						return;
+					}
+
+				}
+
+			}
+
+			function ray(){
+				isogame.RayCast( scene, 100,200 );
+			}
+		</script>
+	</head>
+	<body>
+	<h1>IsoGame mouse motion test</h1>
+	<input type="button" value="ray" onclick="ray()">
+	<p>Move the mouse around the screen. The black square follows the cursor.</p>
+	<p>IsoGame mouse motion algorithm filters consecutives mouse events into a single one to avoid excesive CPU usage.</p>
+	<div id="screen"></div>
+	<textarea id="output" rows="20" cols="100"></textarea> 
+	</body>
+</html>

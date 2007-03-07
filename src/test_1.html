@@ -9,10 +9,10 @@
 
 				s = new isogame.Sprite("test_"+id, "w");
 				id=id+1;
-				s.src['w'] = "img/tile_black.gif";
-				s.dim_z = 10;
-				s.dim_x = 18;
-				s.dim_y = 18;
+				s.src['w'] = "img/cubo.gif";
+				s.dim_z = 30;
+				s.dim_x = 15;
+				s.dim_y = 15;
 				s.setXYZ(1,1,1);
 				s.notify = pj_notify;
 				isogame.EventManager.register( s );
@@ -26,11 +26,11 @@
 				s = new isogame.Sprite("test_"+id, "w");
 				id=id+1;
 				s.src['w'] = "img/tile_black.gif";
-				s.dim_z = 10;
-				s.dim_y = 18;
-				s.dim_x = 18;
+				s.dim_z = 9;
+				s.dim_y = 17;
+				s.dim_x = 17;
 				s.notify = pj_notify;
-				s.setXYZ(1,1,1);
+				s.setXYZ(1,1,10);
 				isogame.EventManager.register( s );
 
 				// Draw a 10x10 lattice
@@ -39,10 +39,9 @@
 					for(var y=0; y< 180; y+=18) {
 						var tile = new isogame.Tile( x+","+y, "", x,y);
 						//tile.z = Math.round( 10*Math.random() );
-						tile.z = 0;
+						tile.z = 1;
 						tile.dim_x=18;
 						tile.dim_y=18;
-						//tile.z = Math.round( x+y*4 );
 						scene.addTile( tile );
 					}
 
@@ -54,10 +53,16 @@
 
 			function principal(){
 				isogame.EventManager.process();
+
+				var nextCube = s.getCube();
+				nextCube.z--;
+				var obs=scene.whatsInCube(nextCube);
+				if( obs.length == 0 ) s.setCube( nextCube );
 				s.update();
 			};
 
 			function pj_notify(ev){
+				var speed=9;
 				if(ev.type == "keydown"){
 					var key = ev.originalEvent.keychar;
 					var nextCube = s.getCube();
@@ -65,42 +70,14 @@
 					var new_y = s.y;
 					var new_z = s.z;
 
-					if(key=="UP")    nextCube.x-=1;
-					if(key=="DOWN")  nextCube.x+=1;
-					if(key=="LEFT")  nextCube.y-=1;
-					if(key=="RIGHT") nextCube.y+=1;
+					if(key=="UP")    nextCube.x-=speed;
+					if(key=="DOWN")  nextCube.x+=speed;
+					if(key=="LEFT")  nextCube.y-=speed;
+					if(key=="RIGHT") nextCube.y+=speed;
 
-					try{
 						var obs=scene.whatsInCube(nextCube);
-						var debajo = obs[obs.length-1];
-						nextCube.z = debajo.z + debajo.dim_z;
-
-						/*if(obs.length != 1 )
-						for( var f=0; f< obs.length; f++){
-							if(f==obs.length-1){
-								var debajo = obs[f];
-								break;
-							}
-							if( (obs[f].z+obs[f].dim_z) == obs[f+1].z ){
-								//no hay hueco
-								continue;
-							} else {
-								var debajo = obs[f];
-								break;
-							}
-						}
-						else var debajo = obs[0];
-						var tope_inferior = debajo.z+debajo.dim_z;
-						if (tope_inferior > s.z) new_z = tope_inferior;
-						if (tope_inferior < s.z) new_z = s.z-1;			
-						*/
-							
-					}catch (excep){
-						echo(excep);
-						return false;
-					}
-					
-					s.setCube( nextCube );
+						if( obs.length == 0 ) s.setCube( nextCube );
+						return;
 				}
 			}
 		</script>
@@ -113,12 +90,12 @@
 		<tr>
 			<td><input type="button" value="y--" onclick="s.setXYZ(s.x, s.y-1);"/></td>
 			<td><input type="button" value="x--" onclick="s.setXYZ(s.x-1);"/></td>
-			<td><input type="button" value="z++" onclick="s.setXYZ(s.x, s.y, s.z+1);"/></td>
+			<td><input type="button" value="z++" onclick="s.setXYZ(s.x, s.y, s.z+10);"/></td>
 		</tr>
 		<tr>
 			<td><input type="button" value="x++" onclick="s.setXYZ(s.x+1);"/></td>
 			<td><input type="button" value="y++" onclick="s.setXYZ(s.x, s.y+1);"/></td>
-			<td><input type="button" value="z--" onclick="s.setXYZ(s.x, s.y, s.z-1);"/></td>
+			<td><input type="button" value="z--" onclick="s.setXYZ(s.x, s.y, s.z-10);"/></td>
 		</tr>
 		<tr>
 			<td><input type="button" value="draw" onclick="s.draw('screen')"/></td>

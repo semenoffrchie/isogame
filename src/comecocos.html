@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>ISOGAME - comecocos</title>
+		<script language="javascript" src="js/isogame.js"></script>
+		<script language="javascript" src="comecocos.js"></script>
+	</head>
+	<body>
+	<label>x:<input type="text" id="pj_x"/></label>
+	<label>y:<input type="text" id="pj_y"/></label>
+	<label>z:<input type="text" id="pj_z"/></label>
+	<fieldset>
+	<legend>Sprite controls</legend>
+	<p> Use cursors to move.</p>
+	<table>
+		<tr>
+			<td><input type="button" value="y--" onclick="s.setXYZ(s.x, s.y-1);"/></td>
+			<td><input type="button" value="x--" onclick="s.setXYZ(s.x-1);"/></td>
+			<td><input type="button" value="z++" onclick="ccocos.pj.z+=10;"/></td>
+		</tr>
+		<tr>
+			<td><input type="button" value="x++" onclick="s.setXYZ(s.x+1);"/></td>
+			<td><input type="button" value="y++" onclick="s.setXYZ(s.x, s.y+1);"/></td>
+			<td><input type="button" value="z--" onclick="ccocos.pj.z--;"/></td>
+		</tr>
+		<tr>
+			<td><input type="button" value="draw" onclick="s.draw('screen')"/></td>
+			<td><input type="button" value="erase" onclick="s.erase()"/></td>
+			<td><input type="button" value="new" onclick="ccocos.createPJ()"/></td>
+		</tr>
+	</table>
+	</legend>
+	<div id="screen"></div>
+	<textarea id="output" cols="50" rows="10"></textarea>
+	</body>
+</html>
