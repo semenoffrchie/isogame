@@ -32,21 +32,25 @@ var isogame={
 	this.dim_x = dim_x;
 	this.dim_y = dim_y;
 	this.dim_z = dim_z;
-	this.collides = function( cube ) {
+	this.collides = function( cube ) { //{{{
 		var centro_x1 = cube.x + (cube.dim_x/2);
 		var centro_y1 = cube.y + (cube.dim_y/2);
+		var centro_z1 = cube.z + (cube.dim_z/2);
 		var centro_x2 = this.x + (this.dim_x/2);
 		var centro_y2 = this.y + (this.dim_y/2);
+		var centro_z2 = this.z + (this.dim_z/2);
 
 		var delta_x = Math.abs( centro_x1 - centro_x2 );
 		var delta_y = Math.abs( centro_y1 - centro_y2 );
+		var delta_z = Math.abs( centro_z1 - centro_z2 );
 
 		var sum_x = (cube.dim_x/2) + (this.dim_x/2);
 		var sum_y = (cube.dim_y/2) + (this.dim_y/2);
+		var sum_z = (cube.dim_z/2) + (this.dim_z/2);
 	  
-		if( (delta_x <= sum_x) && (delta_y <= sum_y) ) return true;
+		if( (delta_x <= sum_x) && (delta_y <= sum_y) && (delta_z <= sum_z) ) return true;
 		else return false;
-	}
+	} //}}}
 
 }, //}}}
 "Sprite":function( id, orientation ){ //{{{
@@ -128,8 +132,6 @@ var isogame={
 		var position = this.getScreenPosition();
 		this.img.style.left= position[0] + this.offset[this.o.charAt(0)][0];
 		this.img.style.top = position[1] + this.offset[this.o.charAt(0)][1];
-
-
 		
 		if(!this._drawn)	{
 			document.getElementById(where).appendChild(this.img);
@@ -269,7 +271,7 @@ var isogame={
 			if( (obj.x <= x) && (obj.x+obj.dim_x > x) && (obj.y <= y) && (obj.y+obj.dim_y > y ) )	ret.push( obj )
 		}
 		if( ret.length == 0 ){
-			throw "isogame.Scene.whatsIn: invalid coordinates ("+x+","+y+")";
+			throw "isogame.Scene.whatsIn: invalid coordinates";
 			return ret;
 		}
 
@@ -300,10 +302,6 @@ var isogame={
 		for(var f=0; f< self.tiles.length; f++){
 			var tile = self.tiles.item(f);
 			if( cube.collides( tile.getCube() ) ) ret.push( tile );
-		}
-		if( ret.length == 0 ){
-			throw "isogame.Scene.whatsIn: invalid coordinates ("+x+","+y+")";
-			return ret;
 		}
 
 		for(var f=0; f< self.objects.length; f++){
@@ -361,7 +359,7 @@ var isogame={
 	} //}}}
 	this.process=function(){ //{{{
 		while( this.events.length > 0 ){
-			var e = this.events.pop();
+			var e = this.events.shift();
 			for(var i=0; i< this.listeners.length; i++)	this.listeners[i].notify( e );
 		}
 		if( this.mouse_event ) {
@@ -386,8 +384,10 @@ var isogame={
 	window.onmousemove=isogame.MouseController;
 	if(isogame.config.mie)
 		document.onkeydown=isogame.KeyboardController;
-	else
+	else {
 		window.onkeydown=isogame.KeyboardController;
+		window.onkeyup=isogame.KeyboardController;
+	}
 	if(delay == undefined) delay = 250;
 	return setInterval( func, delay );
 } //}}}
@@ -416,7 +416,7 @@ var isogame={
 	if(key==40) keychar = "DOWN";
 	ev.key = key;
 	ev.keychar = keychar;
-	var e= new isogame.Event( "keydown", ev );
+	var e= new isogame.Event( ev.type, ev );
 	isogame.EventManager.post( e );
 
 	if(( key > 36) && (key < 41) )return false;
