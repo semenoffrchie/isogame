@@ -157,7 +157,6 @@ var isogame={
 		var inc_tamanio = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
 		var z_index = (y+x)*z+inc_tamanio;
 
-		var pos = this.getScreenPosition();
 		//var z_index = x+y+z;
 		if((parseInt(y)==-1) || (parseInt(x)==-1)) var z_index = 2;
 		return (z_index>0)?z_index:0;
@@ -168,10 +167,10 @@ var isogame={
 	}; //}}}
 } //}}}
 ,"Tile":function( id, img, x, y ){ //{{{
-	isogame.Sprite.apply(this,new Array(id, "s" ));
-	this.src['s'] = "img/suelo.gif";
-	this.offset['s'] = new Array(0,0);
-	this.setXYZ( x, y );
+	isogame.Sprite.apply(this,new Array(id, "w" ));
+	this.src['w'] = "img/suelo.gif";
+	this.offset['w'] = new Array(0,0);
+	this.setXYZ( x, y, 0 );
 	this.draw = function( where ){ //{{{
 		this.img.id = this.id;
 		if(isogame.config.mie) {
@@ -181,8 +180,8 @@ var isogame={
 		
 		this.img.style.position = "absolute";
 		var position = this.getScreenPosition();
-		this.img.style.left= position[0] + this.offset[this.o][0];
-		this.img.style.top = position[1] + this.offset[this.o][1];
+		this.img.style.left= position[0] + this.offset[this.o.charAt(0)][0];
+		this.img.style.top = position[1] + this.offset[this.o.charAt(0)][1];
 		
 		this.img.style.zIndex = this.z_calc();
 		if( !this._drawn )	{
