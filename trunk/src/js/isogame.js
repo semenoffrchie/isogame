@@ -154,12 +154,10 @@ var isogame={
 		var x = parseInt( this.x );
 		var y = parseInt( this.y );
 		var z = parseInt( this.z );
-		var inc_tamanio = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
-		var z_index = (y+x)*z+inc_tamanio;
-
-		//var z_index = x+y+z;
-		if((parseInt(y)==-1) || (parseInt(x)==-1)) var z_index = 2;
-		return (z_index>0)?z_index:0;
+		if(z==0) return 0;
+		var inc = (this.dim_x>this.dim_y)?this.dim_x:this.dim_y;
+		var z_index = (y+x+inc)*100+z;
+		return z_index;
 	} //}}}
 	this.notify = function( ev ){ //{{{
 		this.x = ev.originalEvent.coords[0];
@@ -183,11 +181,11 @@ var isogame={
 		this.img.style.left= position[0] + this.offset[this.o.charAt(0)][0];
 		this.img.style.top = position[1] + this.offset[this.o.charAt(0)][1];
 		
-		this.img.style.zIndex = this.z_calc();
 		if( !this._drawn )	{
 			document.getElementById(where).appendChild(this.img);
 			this._drawn = true;
 		}
+		this.img.style.zIndex = this.z_calc();
 	}; //}}}
 } //}}}
 ,"Group":function(){ //{{{
