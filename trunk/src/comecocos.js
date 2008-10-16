@@ -102,7 +102,7 @@ var ccocos = {
 	if( obs.length == 0 ) ccocos.pj.setCube( nextCube );
 */
 	ccocos.pj.update();
-	ccocos.pnj.update();
+
 /*
 	document.getElementById("pj_x").value = ccocos.pj.x;
 	document.getElementById("pj_y").value = ccocos.pj.y;
